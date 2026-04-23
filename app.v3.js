@@ -12,10 +12,99 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
+// ── AUTH FUNCTIONS ──────────────────────
+async function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass  = document.getElementById('login-password').value;
+  var errEl = document.getElementById('auth-error');
+  var btn   = document.getElementById('btn-login');
+  errEl.classList.add('hidden');
+  if (!email || !pass) {
+    errEl.textContent = 'Remplissez tous les champs';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  btn.textContent = 'Connexion…';
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
+    btn.textContent = 'Se connecter';
+  } catch(e) {
+    btn.textContent = 'Se connecter';
+    var msgs = {
+      'auth/user-not-found':'Utilisateur introuvable.',
+      'auth/wrong-password':'Mot de passe incorrect.',
+      'auth/invalid-credential':'Email ou mot de passe incorrect.',
+      'auth/invalid-email':'Email invalide.'
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function doGoogle() {
+  var btn = document.getElementById('btn-google');
+  try {
+    btn.disabled = true; btn.textContent = 'Connexion…';
+    await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Continuer avec Google';
+  }
+}
+
+async function doForgot() {
+  var email = document.getElementById('login-email').value.trim();
+  var errEl = document.getElementById('auth-error');
+  if (!email) { errEl.textContent = "Entrez votre email d'abord"; errEl.classList.remove('hidden'); return; }
+  try {
+    await firebase.auth().sendPasswordResetEmail(email);
+    errEl.style.cssText = 'background:#e8f5e3;color:#2d5a27';
+    errEl.textContent = '✅ Email envoyé à ' + email;
+    errEl.classList.remove('hidden');
+  } catch(e) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+}
+
+async function doLogout() {
+  if (confirm('Se déconnecter ?')) {
+    await firebase.auth().signOut();
+    location.reload();
+  }
+}
+
+
+// Auth state listener
+firebase.auth().onAuthStateChanged(function(user) {
+  console.log('Auth state:', user ? user.email : 'not logged in');
+  var splash = document.getElementById('splash');
+  if (splash) splash.style.display = 'none';
+  
+  if (user) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    // Wait for app.v3.js to load then call showApp
+    var tries = 0;
+    var tryShowApp = function() {
+      tries++;
+      if (typeof showApp === 'function') {
+        showApp();
+      } else if (tries < 20) {
+        setTimeout(tryShowApp, 200);
+      }
+    };
+    tryShowApp();
+  } else {
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+  }
+});
+
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
 // ── CONFIG ───────────────────────────────
+// UID partagé pour toute l'équipe Safa Nature
+// Toutes les données (produits, commandes, ads) sont liées à cet UID
+const SHARED_UID = 'HtSiS1gJpuWKZ5K0W4fjMmG3QhL2';
 const ADMIN_EMAILS = ['a.sorour@a2i.co.ma', 'adil.sorour@gmail.com', 'safaa@safanature.ma'];
 const UNITS = ['1kg','500g','250g','100g','50g','250ml','100ml','60ml','40ml','30ml','1p','Pièce'];
 
@@ -80,28 +169,7 @@ function _initApp() {
   if (catSel)  catSel.innerHTML  = CATS.map(c  => `<option value="${c}">${c}</option>`).join('');
   populateProductNames();
 
-  // Auth state
-  auth.onAuthStateChanged(user => {
-    console.log('Auth state changed:', user ? user.email : 'not logged in');
-    const splash = document.getElementById('splash');
-    const hideSplash = () => {
-      if (splash) {
-        splash.classList.add('fade-out');
-        setTimeout(() => { splash.style.display = 'none'; }, 400);
-      }
-    };
-
-    if (user) {
-      currentUser = user;
-      userRole = ADMIN_EMAILS.includes(user.email) ? 'admin' : 'restricted';
-      console.log('User:', user.email, '| Role:', userRole);
-      setTimeout(() => { hideSplash(); showApp(); }, 600);
-    } else {
-      hideSplash();
-      document.getElementById('auth-screen').classList.remove('hidden');
-      document.getElementById('app').classList.add('hidden');
-    }
-  });
+  // Auth state handled by onAuthStateChanged above
 
   setWelcomeDate();
   setupNav();
@@ -138,67 +206,15 @@ if (document.readyState === 'loading') {
 //  AUTH
 // ══════════════════════════════════════════
 function setupAuth() {
-  // Email login
-  document.getElementById('btn-login').addEventListener('click', async () => {
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-password').value;
-    const errEl = document.getElementById('auth-error');
-    errEl.classList.add('hidden');
-    if (!email || !pass) { errEl.textContent='Remplissez tous les champs'; errEl.classList.remove('hidden'); return; }
-    document.getElementById('btn-login').textContent = 'Connexion…';
-    try {
-      await auth.signInWithEmailAndPassword(email, pass);
-    } catch(e) {
-      document.getElementById('btn-login').textContent = 'Se connecter';
-      const msgs = {'auth/user-not-found':'Utilisateur introuvable.','auth/wrong-password':'Mot de passe incorrect.','auth/invalid-credential':'Email ou mot de passe incorrect.'};
-      errEl.textContent = msgs[e.code] || e.message;
-      errEl.classList.remove('hidden');
-    }
-  });
-
-  // Google login
-  const btnG = document.getElementById('btn-google');
-  if (btnG) {
-    btnG.addEventListener('click', async () => {
-      try {
-        btnG.textContent = 'Connexion…'; btnG.disabled = true;
-        await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-      } catch(e) {
-        btnG.textContent = 'Continuer avec Google'; btnG.disabled = false;
-      }
-    });
-  }
-
-  // Logout
-  document.getElementById('btn-logout').addEventListener('click', async () => {
-    if (confirm('Se déconnecter ?')) { await auth.signOut(); location.reload(); }
-  });
-
-  // Forgot password
-  const btnForgot = document.getElementById('btn-forgot');
-  if (btnForgot) {
-    btnForgot.addEventListener('click', async () => {
-      const email = document.getElementById('login-email').value.trim();
-      const errEl = document.getElementById('auth-error');
-      if (!email) { errEl.textContent='Entrez votre email d\'abord'; errEl.classList.remove('hidden'); return; }
-      try {
-        await auth.sendPasswordResetEmail(email);
-        errEl.style.cssText='background:var(--green-pale);color:var(--green)';
-        errEl.textContent='✅ Email envoyé à '+email;
-        errEl.classList.remove('hidden');
-      } catch(e) { errEl.textContent=e.message; errEl.classList.remove('hidden'); }
-    });
-  }
-
-  // Reset password from profile
+  // Reset password from profile only - login handled by doLogin() in HTML
   const btnReset = document.getElementById('btn-reset-password');
   if (btnReset) {
     btnReset.addEventListener('click', async () => {
-      if (!currentUser) return;
-      if (!confirm('Envoyer un email de réinitialisation à '+currentUser.email+' ?')) return;
+      const user = auth.currentUser; if (!user) return;
+      if (!confirm('Envoyer un email de réinitialisation à '+user.email+' ?')) return;
       try {
-        await auth.sendPasswordResetEmail(currentUser.email);
-        showMsg(document.getElementById('profile-msg'), '✅ Email envoyé à '+currentUser.email, 'success');
+        await auth.sendPasswordResetEmail(user.email);
+        showMsg(document.getElementById('profile-msg'), '✅ Email envoyé à '+user.email, 'success');
       } catch(e) { showMsg(document.getElementById('profile-msg'), '❌ '+e.message, 'error'); }
     });
   }
@@ -411,7 +427,7 @@ function setupProducts() {
     const priceBuy  = parseFloat(document.getElementById('product-price-buy').value)||0;
 
     const data = {
-      uid:            user.uid,
+      uid:            SHARED_UID,
       name,
       category:       document.getElementById('product-category').value || 'Miel',
       qty:            parseFloat(document.getElementById('product-qty').value)||0,
@@ -464,7 +480,7 @@ function setupProducts() {
 async function loadProducts() {
   if (!auth.currentUser) return;
   try {
-    const snap = await db.collection('products').where('uid','==',auth.currentUser.uid).get();
+    const snap = await db.collection('products').where('uid','==',SHARED_UID).get();
     allProducts = snap.docs.map(d => ({id:d.id,...d.data()}));
     allProducts.sort((a,b) => (a.name||'').localeCompare(b.name||''));
     console.log('Produits chargés:', allProducts.length);
@@ -580,7 +596,7 @@ function setupOrders() {
     const client = (document.getElementById('order-client').value||'').trim();
     if (!client) { alert('Entrez le nom du client'); return; }
     const data = {
-      uid: user.uid, client,
+      uid: SHARED_UID, client,
       phone:    document.getElementById('order-phone').value.trim(),
       products: document.getElementById('order-products').value.trim(),
       amount:   parseFloat(document.getElementById('order-amount').value)||0,
@@ -651,7 +667,7 @@ async function deductStock(productsText) {
 async function loadOrders() {
   if (!auth.currentUser) return;
   try {
-    const snap = await db.collection('orders').where('uid','==',auth.currentUser.uid).get();
+    const snap = await db.collection('orders').where('uid','==',SHARED_UID).get();
     allOrders = snap.docs.map(d => ({id:d.id,...d.data()}));
     allOrders.sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     renderOrders('all');
@@ -712,7 +728,7 @@ function setupAds() {
   document.getElementById('btn-save-ads').addEventListener('click', async () => {
     const user = auth.currentUser; if(!user) return;
     const data = {
-      uid: user.uid,
+      uid: SHARED_UID,
       date:        document.getElementById('ads-date').value,
       campaign:    document.getElementById('ads-campaign').value.trim(),
       spend:       parseFloat(document.getElementById('ads-spend').value)||0,
@@ -729,7 +745,7 @@ function setupAds() {
 async function loadAds() {
   if (!auth.currentUser) return;
   try {
-    const snap = await db.collection('ads').where('uid','==',auth.currentUser.uid).get();
+    const snap = await db.collection('ads').where('uid','==',SHARED_UID).get();
     allAds = snap.docs.map(d=>({id:d.id,...d.data()}));
     allAds.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     renderAdsEntries();
