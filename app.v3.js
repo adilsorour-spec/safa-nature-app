@@ -16,7 +16,7 @@ const auth = firebase.auth();
 const db   = firebase.firestore();
 
 // ── CONFIG ───────────────────────────────
-const ADMIN_EMAILS = ['a.sorour@a2i.co.ma', 'safaa@safanature.ma'];
+const ADMIN_EMAILS = ['a.sorour@a2i.co.ma', 'adil.sorour@gmail.com', 'safaa@safanature.ma'];
 const UNITS = ['1kg','500g','250g','100g','50g','250ml','100ml','60ml','40ml','30ml','1p','Pièce'];
 
 // Noms de produits prédéfinis (modifiables depuis l'app)

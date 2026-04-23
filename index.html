@@ -426,7 +426,7 @@ async function doLogout() {
   }
 }
 
-// Auth state listener - runs as soon as Firebase is ready
+// Auth state listener
 firebase.auth().onAuthStateChanged(function(user) {
   console.log('Auth state:', user ? user.email : 'not logged in');
   var splash = document.getElementById('splash');
@@ -435,14 +435,17 @@ firebase.auth().onAuthStateChanged(function(user) {
   if (user) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    if (typeof showApp === 'function') {
-      showApp();
-    } else {
-      // app.v3.js not loaded yet, wait
-      setTimeout(function() {
-        if (typeof showApp === 'function') showApp();
-      }, 500);
-    }
+    // Wait for app.v3.js to load then call showApp
+    var tries = 0;
+    var tryShowApp = function() {
+      tries++;
+      if (typeof showApp === 'function') {
+        showApp();
+      } else if (tries < 20) {
+        setTimeout(tryShowApp, 200);
+      }
+    };
+    tryShowApp();
   } else {
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
