@@ -80,21 +80,24 @@ function _initApp() {
   if (catSel)  catSel.innerHTML  = CATS.map(c  => `<option value="${c}">${c}</option>`).join('');
   populateProductNames();
 
-  // Auth state — no timeout, listen immediately
+  // Auth state
   auth.onAuthStateChanged(user => {
+    console.log('Auth state changed:', user ? user.email : 'not logged in');
     const splash = document.getElementById('splash');
-    
+    const hideSplash = () => {
+      if (splash) {
+        splash.classList.add('fade-out');
+        setTimeout(() => { splash.style.display = 'none'; }, 400);
+      }
+    };
+
     if (user) {
       currentUser = user;
-      userRole    = ADMIN_EMAILS.includes(user.email) ? 'admin' : 'restricted';
-      console.log('User:', user.email, '| Role:', userRole, '| UID:', user.uid);
-      // Show splash briefly then load app
-      setTimeout(() => {
-        if (splash) { splash.classList.add('fade-out'); setTimeout(() => splash.style.display='none', 400); }
-        showApp();
-      }, 800);
+      userRole = ADMIN_EMAILS.includes(user.email) ? 'admin' : 'restricted';
+      console.log('User:', user.email, '| Role:', userRole);
+      setTimeout(() => { hideSplash(); showApp(); }, 600);
     } else {
-      if (splash) { splash.classList.add('fade-out'); setTimeout(() => splash.style.display='none', 400); }
+      hideSplash();
       document.getElementById('auth-screen').classList.remove('hidden');
       document.getElementById('app').classList.add('hidden');
     }
