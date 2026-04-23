@@ -369,5 +369,17 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="app.v3.js" defer></script>
+<script>
+// Force remove splash after 2 seconds no matter what
+setTimeout(function() {
+  var splash = document.getElementById('splash');
+  if (splash) splash.style.display = 'none';
+  // If not logged in, show auth screen
+  if (document.getElementById('app').classList.contains('hidden') &&
+      document.getElementById('auth-screen').classList.contains('hidden')) {
+    document.getElementById('auth-screen').classList.remove('hidden');
+  }
+}, 2000);
+</script>
 </body>
 </html>
