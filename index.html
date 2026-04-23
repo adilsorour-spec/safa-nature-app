@@ -368,25 +368,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="app.v3.js"></script>
-<script>
-// Auto-recover: if user is logged in but app is still hidden after 3s, force show
-setTimeout(() => {
-  const app = document.getElementById('app');
-  const splash = document.getElementById('splash');
-  if (app && app.classList.contains('hidden')) {
-    const user = firebase.auth().currentUser;
-    if (user) {
-      console.log('Auto-recover triggered');
-      if (splash) splash.style.display = 'none';
-      showApp();
-    } else {
-      // Not logged in - show auth screen
-      if (splash) splash.style.display = 'none';
-      document.getElementById('auth-screen').classList.remove('hidden');
-    }
-  }
-}, 3000);
-</script>
+<script src="app.v3.js" defer></script>
 </body>
 </html>

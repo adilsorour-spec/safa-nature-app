@@ -59,7 +59,20 @@ let chartCA, chartOrders, chartAds;
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
+function initApp() {
+  // Verify all required elements exist
+  const required = ['btn-login','btn-logout','splash','auth-screen','app'];
+  const missing = required.filter(id => !document.getElementById(id));
+  if (missing.length > 0) {
+    console.log('Waiting for DOM... missing:', missing);
+    setTimeout(initApp, 100);
+    return;
+  }
+  console.log('DOM ready - initializing app ✅');
+  _initApp();
+}
+
+function _initApp() {
   // Populate selects
   const unitSel = document.getElementById('product-unit');
   const catSel  = document.getElementById('product-category');
@@ -93,10 +106,11 @@ window.addEventListener('DOMContentLoaded', () => {
   setupAuth();
   setupProfile();
   setupReports();
+  setupNamesManager();
   
-  // Setup interactive buttons with retry to ensure DOM is ready
+  // Setup interactive buttons with retry
   function setupAll() {
-    const btnProd = document.getElementById('btn-add-product');
+    const btnProd  = document.getElementById('btn-add-product');
     const btnOrder = document.getElementById('btn-add-order');
     if (!btnProd || !btnOrder) {
       setTimeout(setupAll, 100);
@@ -108,7 +122,14 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log('Setup complet ✅');
   }
   setupAll();
-});
+}
+
+// Start when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 // ══════════════════════════════════════════
 //  AUTH
@@ -874,16 +895,7 @@ function renderNamesList() {
 }
 
 // Handle custom name input
-document.addEventListener('DOMContentLoaded', () => {
-  setupNamesManager();
 
-  const customInput = document.getElementById('product-name-custom-input');
-  if (customInput) {
-    customInput.addEventListener('input', () => {
-      // Sync to hidden product-name field via select value
-    });
-  }
-});
 
 // Override btn-save-product to read from select or custom input
 
