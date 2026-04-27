@@ -127,6 +127,14 @@ function initApp() {
 async function loadAll() {
   await Promise.all([loadProducts(), loadPacks(), loadOrders(), loadPurchases(), loadAds()]);
   loadProfile();
+  refreshDashboard();
+}
+
+function refreshDashboard() {
+  updateKPIs();
+  renderRecentOrders();
+  renderStockAlerts();
+  setWelcomeDate();
 }
 
 // ── RÔLES ────────────────────────────────
@@ -149,6 +157,7 @@ function navigateTo(page) {
   const titles={dashboard:'Tableau de bord',commandes:'Commandes',stocks:'Stocks',packs:'Packs',achats:'Achats',rapports:'Rapports',profil:'Profil'};
   $('page-title').textContent=titles[page]||'';
   if(page==='rapports') setTimeout(initCharts,100);
+  if(page==='dashboard') refreshDashboard();
 }
 
 function setWelcomeDate() {
