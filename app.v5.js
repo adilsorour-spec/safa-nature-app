@@ -856,13 +856,31 @@ function renderAdsEntries() {
 // ══════════════════════════════════════════
 function updateKPIs() {
   const now=new Date(), som=new Date(now.getFullYear(),now.getMonth(),1);
+  
+  // CA ce mois (toutes commandes non annulées du mois en cours)
   const ordersMonth=allOrders.filter(o=>o.date&&new Date(o.date)>=som);
-  const ca=ordersMonth.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(o.amount||0),0);
+  const caMonth=ordersMonth.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(o.amount||0),0);
+  
+  // Si aucune commande ce mois, afficher le total général
+  const caTotal=allOrders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(o.amount||0),0);
+  const ca = caMonth > 0 ? caMonth : caTotal;
+  const caLabel = caMonth > 0 ? 'ce mois' : 'total';
+  
   const e1=$('kpi-ca');if(e1)e1.textContent=fmt(ca)+' MAD';
-  const e2=$('kpi-orders');if(e2)e2.textContent=ordersMonth.length;
+  const kpiLabel=$('kpi-ca-label');if(kpiLabel)kpiLabel.textContent='CA '+caLabel;
+  
+  // Commandes ce mois ou total
+  const ordersCount = ordersMonth.length > 0 ? ordersMonth.length : allOrders.length;
+  const e2=$('kpi-orders');if(e2)e2.textContent=ordersCount;
+  const ordLabel=$('kpi-orders-label');if(ordLabel)ordLabel.textContent=ordersMonth.length>0?'Commandes mois':'Commandes total';
+  
   const e3=$('kpi-stock');if(e3)e3.textContent=allProducts.length;
-  const ads=allAds.filter(a=>a.date&&new Date(a.date)>=som).reduce((s,a)=>s+(a.spend||0),0);
+  
+  const adsMonth=allAds.filter(a=>a.date&&new Date(a.date)>=som).reduce((s,a)=>s+(a.spend||0),0);
+  const adsTotal=allAds.reduce((s,a)=>s+(a.spend||0),0);
+  const ads = adsMonth > 0 ? adsMonth : adsTotal;
   const e4=$('kpi-ads');if(e4)e4.textContent=fmt(ads)+' MAD';
+  const adsLabel=$('kpi-ads-label');if(adsLabel)adsLabel.textContent=adsMonth>0?'Dépense Ads mois':'Dépense Ads total';
 }
 
 // ══════════════════════════════════════════
