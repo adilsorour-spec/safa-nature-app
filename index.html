@@ -10,7 +10,6 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <link rel="icon" href="icons/icon-32.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -19,9 +18,7 @@
 <!-- SPLASH -->
 <div id="splash" class="splash">
   <div class="splash-inner">
-    <div class="splash-logo">
-      <img src="icons/icon-192.png" style="width:90px;height:90px;object-fit:contain" alt="Safa Nature" />
-    </div>
+    <div class="splash-logo"><img src="icons/icon-192.png" style="width:90px;height:90px;object-fit:contain" alt="Safa Nature" /></div>
     <h1 class="splash-title">Safa Nature</h1>
     <p class="splash-sub">Chargement…</p>
     <div class="splash-bar"><div class="splash-progress"></div></div>
@@ -32,10 +29,7 @@
 <div id="auth-screen" class="screen hidden">
   <div class="auth-bg"></div>
   <div class="auth-card">
-    <div class="auth-logo">
-      <img src="icons/icon-96.png" style="width:48px;height:48px;object-fit:contain" alt="" />
-      <span>Safa Nature</span>
-    </div>
+    <div class="auth-logo"><img src="icons/icon-96.png" style="width:48px;height:48px;object-fit:contain" alt="" /><span>Safa Nature</span></div>
     <h2>Bienvenue</h2>
     <p class="auth-desc">Connectez-vous pour accéder au tableau de bord</p>
     <div id="auth-error" class="auth-error hidden"></div>
@@ -59,12 +53,11 @@
       <img src="icons/icon-32.png" style="width:30px;height:30px;object-fit:contain" alt="" />
       <span class="topbar-title" id="page-title">Tableau de bord</span>
     </div>
-    <div class="topbar-right">
-      <div class="avatar" id="topbar-avatar">A</div>
-    </div>
+    <div class="topbar-right"><div class="avatar" id="topbar-avatar">A</div></div>
   </header>
 
   <main class="main-content">
+
     <!-- DASHBOARD -->
     <section id="page-dashboard" class="page active">
       <div class="welcome-banner">
@@ -85,10 +78,11 @@
 
     <!-- COMMANDES -->
     <section id="page-commandes" class="page">
-      <div class="page-header"><h2>Commandes</h2><button class="btn-add admin-only" id="btn-add-order">+ Nouvelle</button></div>
+      <div class="page-header"><h2>Commandes</h2><button class="btn-add" id="btn-add-order">+ Nouvelle</button></div>
       <div class="filter-bar">
         <button class="filter-btn active" data-filter="all">Toutes</button>
         <button class="filter-btn" data-filter="pending">En attente</button>
+        <button class="filter-btn" data-filter="confirmed">Confirmées</button>
         <button class="filter-btn" data-filter="done">Livrées</button>
         <button class="filter-btn" data-filter="cancelled">Annulées</button>
       </div>
@@ -97,19 +91,43 @@
 
     <!-- STOCKS -->
     <section id="page-stocks" class="page">
-      <div class="page-header"><h2>Stocks</h2><button class="btn-add admin-only" id="btn-add-product">+ Produit</button></div>
+      <div class="page-header"><h2>Stocks</h2><button class="btn-add" id="btn-add-product">+ Produit</button></div>
       <div id="products-list" class="products-grid"><div class="empty-state">Aucun produit</div></div>
+    </section>
+
+    <!-- PACKS -->
+    <section id="page-packs" class="page">
+      <div class="page-header"><h2>Packs</h2><button class="btn-add admin-only" id="btn-add-pack">+ Nouveau Pack</button></div>
+      <div id="packs-list" class="products-grid"><div class="empty-state">Aucun pack créé</div></div>
+    </section>
+
+    <!-- ACHATS -->
+    <section id="page-achats" class="page">
+      <div class="page-header"><h2>Achats Fournisseurs</h2><button class="btn-add" id="btn-add-purchase">+ Achat</button></div>
+      <div id="purchases-list" class="orders-list"><div class="empty-state">Aucun achat enregistré</div></div>
     </section>
 
     <!-- RAPPORTS -->
     <section id="page-rapports" class="page">
       <div class="page-header"><h2>Rapports</h2></div>
+      <div class="report-period-bar">
+        <select id="report-period">
+          <option value="7">7 derniers jours</option>
+          <option value="30" selected>30 derniers jours</option>
+          <option value="90">3 derniers mois</option>
+        </select>
+      </div>
       <div class="report-tabs">
         <button class="rtab active" data-tab="ventes">Ventes</button>
-        <button class="rtab" data-tab="ads">Meta Ads</button>
+        <button class="rtab" data-tab="stock">Stock</button>
+        <button class="rtab" data-tab="ads">Ads</button>
+        <button class="rtab admin-only" data-tab="finance">Finance</button>
       </div>
+
+      <!-- Ventes -->
       <div id="rtab-ventes" class="rtab-content active">
         <div class="chart-card"><div class="chart-title">Chiffre d'affaires (MAD)</div><canvas id="chart-ca" height="200"></canvas></div>
+        <div class="chart-card"><div class="chart-title">CA par canal</div><canvas id="chart-channel" height="180"></canvas></div>
         <div class="chart-card"><div class="chart-title">Commandes par statut</div><canvas id="chart-orders" height="180"></canvas></div>
         <div class="stats-row">
           <div class="stat-box"><div class="stat-val" id="stat-total-ca">—</div><div class="stat-lbl">CA Total</div></div>
@@ -117,6 +135,18 @@
           <div class="stat-box"><div class="stat-val" id="stat-top-product">—</div><div class="stat-lbl">Top produit</div></div>
         </div>
       </div>
+
+      <!-- Stock -->
+      <div id="rtab-stock" class="rtab-content">
+        <div class="stats-row" style="grid-template-columns:1fr 1fr">
+          <div class="stat-box admin-only"><div class="stat-val" id="stat-stock-value">—</div><div class="stat-lbl">Valeur stock</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-stock-low">—</div><div class="stat-lbl">Alertes stock</div></div>
+        </div>
+        <div class="section-title" style="margin-top:8px">Produits en stock bas</div>
+        <div id="report-stock-low" class="orders-list"></div>
+      </div>
+
+      <!-- Ads -->
       <div id="rtab-ads" class="rtab-content">
         <div class="page-header" style="margin-top:0"><span></span><button class="btn-add admin-only" id="btn-add-ads">+ Saisir</button></div>
         <div class="chart-card"><div class="chart-title">Dépenses publicitaires (MAD)</div><canvas id="chart-ads" height="200"></canvas></div>
@@ -126,6 +156,16 @@
           <div class="stat-box"><div class="stat-val" id="stat-ads-roas">—</div><div class="stat-lbl">ROAS</div></div>
         </div>
         <div id="ads-entries-list" class="orders-list" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Finance (admin only) -->
+      <div id="rtab-finance" class="rtab-content admin-only">
+        <div class="chart-card"><div class="chart-title">CA vs Bénéfice</div><canvas id="chart-benefit" height="200"></canvas></div>
+        <div class="chart-card"><div class="chart-title">Achats par fournisseur</div><canvas id="chart-supplier" height="180"></canvas></div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-val" id="stat-benefit">—</div><div class="stat-lbl">Bénéfice net</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-purchases">—</div><div class="stat-lbl">Total achats</div></div>
+        </div>
       </div>
     </section>
 
@@ -150,35 +190,52 @@
         <div class="settings-item" id="btn-reset-password"><span>🔑</span><span>Changer mon mot de passe</span><span class="arrow">›</span></div>
         <div class="settings-item" id="btn-logout"><span>🚪</span><span>Se déconnecter</span><span class="arrow">›</span></div>
       </div>
-      <p class="app-version">Safa Nature App v1.0</p>
+      <p class="app-version">Safa Nature App v2.0</p>
     </section>
   </main>
 
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Dashboard</span></button>
+    <button class="nav-btn active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Board</span></button>
     <button class="nav-btn" data-page="commandes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span>Commandes</span></button>
     <button class="nav-btn" data-page="stocks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg><span>Stocks</span></button>
+    <button class="nav-btn" data-page="packs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg><span>Packs</span></button>
+    <button class="nav-btn" data-page="achats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg><span>Achats</span></button>
     <button class="nav-btn" data-page="rapports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Rapports</span></button>
     <button class="nav-btn" data-page="profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profil</span></button>
   </nav>
 </div>
 
-<!-- MODAL COMMANDE -->
+<!-- ══ MODALS ══ -->
+
+<!-- COMMANDE -->
 <div id="modal-order" class="modal" style="display:none">
   <div class="modal-card">
     <div class="modal-header"><h3 id="modal-order-title">Nouvelle commande</h3><button class="modal-close" data-modal="modal-order">✕</button></div>
-    <div class="field"><label>Client</label><input type="text" id="order-client" placeholder="Nom du client" /></div>
-    <div class="field"><label>Téléphone</label><input type="tel" id="order-phone" placeholder="+212 6…" /></div>
-    <div class="field"><label>Produit(s)</label><input type="text" id="order-products" placeholder="Miel, Argan…" /></div>
-    <div class="field"><label>Montant (MAD)</label><input type="number" id="order-amount" placeholder="0.00" /></div>
+    <div class="field"><label>Date <span style="color:red">*</span></label><input type="date" id="order-date" /></div>
     <div class="field"><label>Canal</label>
       <select id="order-channel">
         <option value="whatsapp">WhatsApp</option>
         <option value="site">Site web</option>
         <option value="boutique">Boutique</option>
-        <option value="instagram">Instagram</option>
       </select>
     </div>
+    <div id="order-client-row">
+      <div class="field"><label>Client</label><input type="text" id="order-client" placeholder="Nom du client" /></div>
+      <div class="field"><label>Téléphone</label><input type="tel" id="order-phone" placeholder="+212 6…" /></div>
+    </div>
+    <!-- Type produit ou pack -->
+    <div class="field">
+      <label>Type de commande</label>
+      <div class="radio-group">
+        <label class="radio-label"><input type="radio" name="order-type" value="product" checked /> Produit</label>
+        <label class="radio-label"><input type="radio" name="order-type" value="pack" /> Pack</label>
+      </div>
+    </div>
+    <div id="order-product-row" class="field"><label>Produit</label><select id="order-product-select"></select></div>
+    <div id="order-pack-row" class="field" style="display:none"><label>Pack</label><select id="order-pack-select"></select></div>
+    <div class="field"><label>Quantité</label><input type="number" id="order-qty" value="1" min="1" /></div>
+    <div class="field"><label>Montant (MAD)</label><input type="number" id="order-amount" placeholder="0.00" /></div>
     <div class="field"><label>Statut</label>
       <select id="order-status">
         <option value="pending">En attente</option>
@@ -193,7 +250,7 @@
   </div>
 </div>
 
-<!-- MODAL PRODUIT -->
+<!-- PRODUIT -->
 <div id="modal-product" class="modal" style="display:none">
   <div class="modal-card">
     <div class="modal-header"><h3>Produit / Stock</h3><button class="modal-close" data-modal="modal-product">✕</button></div>
@@ -208,11 +265,65 @@
     <div id="margin-preview" class="margin-preview"></div>
     <div class="field"><label>Seuil d'alerte stock</label><input type="number" id="product-alert" placeholder="5" /></div>
     <button class="btn-primary" id="btn-save-product">Enregistrer</button>
-    <button class="btn-delete" id="btn-delete-product" style="display:none">🗑️ Supprimer ce produit</button>
+    <button class="btn-delete admin-only" id="btn-delete-product" style="display:none">🗑️ Supprimer ce produit</button>
   </div>
 </div>
 
-<!-- MODAL META ADS -->
+<!-- PACK -->
+<div id="modal-pack" class="modal" style="display:none">
+  <div class="modal-card">
+    <div class="modal-header"><h3>Créer un Pack</h3><button class="modal-close" data-modal="modal-pack">✕</button></div>
+    <div class="field"><label>Nom du pack</label><input type="text" id="pack-name" placeholder="Pack Miel Premium…" /></div>
+    <!-- Ajouter produits au pack -->
+    <div class="field">
+      <label>Ajouter un produit</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="pack-item-product" style="flex:2"></select>
+        <input type="number" id="pack-item-qty" value="1" min="1" style="width:60px;padding:10px 8px;border:1.5px solid var(--border);border-radius:10px" />
+        <button class="btn-add" id="btn-add-pack-item" type="button">+</button>
+      </div>
+    </div>
+    <div id="pack-items-list" style="margin-bottom:12px"></div>
+    <!-- Prix -->
+    <div class="pack-price-summary">
+      <div class="pack-price-row"><span>Prix d'achat total :</span><span id="pack-price-buy-display" style="font-weight:700">0 MAD</span></div>
+      <div class="pack-price-row"><span>Marge :</span><span id="pack-margin-display" style="font-weight:700;color:var(--green)">0 MAD (0%)</span></div>
+    </div>
+    <div class="field"><label>Prix de vente proposé (MAD)</label><input type="number" id="pack-price-sale" placeholder="0.00" /></div>
+    <button class="btn-primary" id="btn-save-pack">Enregistrer le pack</button>
+    <button class="btn-delete" id="btn-delete-pack" style="display:none">🗑️ Supprimer ce pack</button>
+  </div>
+</div>
+
+<!-- ACHAT FOURNISSEUR -->
+<div id="modal-purchase" class="modal" style="display:none">
+  <div class="modal-card">
+    <div class="modal-header"><h3>Achat Fournisseur</h3><button class="modal-close" data-modal="modal-purchase">✕</button></div>
+    <div class="field"><label>Date <span style="color:red">*</span></label><input type="date" id="purchase-date" /></div>
+    <div class="field"><label>Fournisseur</label><input type="text" id="purchase-supplier" placeholder="Nom du fournisseur…" /></div>
+    <div class="field"><label>Type</label>
+      <select id="purchase-type">
+        <option value="existing">Produit existant</option>
+        <option value="new">Nouveau produit</option>
+      </select>
+    </div>
+    <!-- Produit existant -->
+    <div id="purchase-existing-row">
+      <div class="field"><label>Produit</label><select id="purchase-existing-product"></select></div>
+    </div>
+    <!-- Nouveau produit -->
+    <div id="purchase-new-row" style="display:none">
+      <div class="field"><label>Nom du produit</label><select id="purchase-name-select"></select></div>
+      <div class="field" id="purchase-name-custom-row" style="display:none"><label>Nom personnalisé</label><input type="text" id="purchase-name-custom-input" placeholder="Nom du nouveau produit…" /></div>
+    </div>
+    <div class="field"><label>Quantité</label><input type="number" id="purchase-qty" placeholder="0" /></div>
+    <div class="field"><label>Prix d'achat unitaire (MAD)</label><input type="number" id="purchase-price" placeholder="0.00" /></div>
+    <div class="field"><label>Notes</label><textarea id="purchase-notes" rows="2" placeholder="Remarques…"></textarea></div>
+    <button class="btn-primary" id="btn-save-purchase">Enregistrer</button>
+  </div>
+</div>
+
+<!-- META ADS -->
 <div id="modal-ads" class="modal" style="display:none">
   <div class="modal-card">
     <div class="modal-header"><h3>Saisie Meta Ads</h3><button class="modal-close" data-modal="modal-ads">✕</button></div>
@@ -226,7 +337,7 @@
   </div>
 </div>
 
-<!-- MODAL NOMS -->
+<!-- NOMS -->
 <div id="modal-names" class="modal" style="display:none">
   <div class="modal-card">
     <div class="modal-header"><h3>Gérer les noms de produits</h3><button class="modal-close" data-modal="modal-names">✕</button></div>
@@ -245,9 +356,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<!-- App -->
-<script src="app.v4.js"></script>
+<script src="app.v5.js"></script>
 </body>
 </html>

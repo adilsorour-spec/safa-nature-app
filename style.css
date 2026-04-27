@@ -749,3 +749,39 @@ body {
   transition: opacity .2s;
 }
 .btn-delete-name:hover { opacity: 1; }
+
+/* ══════════════════════════════════════
+   v5 — NOUVEAUX STYLES
+══════════════════════════════════════ */
+
+/* Radio group */
+.radio-group { display:flex; gap:16px; padding:4px 0; }
+.radio-label { display:flex; align-items:center; gap:6px; font-size:.9rem; font-weight:500; cursor:pointer; }
+.radio-label input[type="radio"] { accent-color:var(--green); width:16px; height:16px; }
+
+/* Pack styles */
+.pack-item-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px;
+}
+.pack-item-info { flex:1; }
+.pack-item-name { font-weight:600; font-size:.9rem; display:block; }
+.pack-item-detail { font-size:.75rem; color:var(--text-muted); }
+.btn-remove-item { border:none; background:none; color:var(--red); cursor:pointer; font-size:.9rem; padding:4px 6px; }
+
+.pack-price-summary {
+  background:var(--bg); border-radius:12px; padding:12px 14px;
+  margin-bottom:14px; display:flex; flex-direction:column; gap:6px;
+}
+.pack-price-row { display:flex; justify-content:space-between; font-size:.9rem; }
+
+/* Report period */
+.report-period-bar { margin-bottom:16px; }
+.report-period-bar select {
+  width:100%; padding:10px 14px; border:1.5px solid var(--border);
+  border-radius:12px; font-family:var(--font-sans); font-size:.9rem;
+  color:var(--text); background:var(--surface); outline:none; -webkit-appearance:none;
+}
+
+/* Stock report */
+#report-stock-low .order-item { cursor:default; }
