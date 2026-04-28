@@ -705,13 +705,25 @@ function orderHTML(o) {
 // ══════════════════════════════════════════
 function setupPurchases() {
   $('btn-add-purchase').addEventListener('click',()=>{
-    clearFields('purchase-supplier','purchase-date','purchase-qty','purchase-price','purchase-notes','purchase-name-custom-input');
+    clearFields('purchase-supplier','purchase-qty','purchase-price','purchase-notes','purchase-name-custom-input');
     $('purchase-date').value=today();
     $('purchase-type').value='existing';
     $('purchase-existing-row').style.display='';
     $('purchase-new-row').style.display='none';
     refreshProductDropdowns();
     openModal('modal-purchase');
+  });
+
+  // Show existing price when product selected
+  $('purchase-existing-product').addEventListener('change',()=>{
+    const pid=$('purchase-existing-product').value;
+    const prod=allProducts.find(p=>p.id===pid);
+    if(prod&&prod.priceBuy>0){
+      $('purchase-price').value=prod.priceBuy;
+      $('purchase-price-hint').textContent='Ancien prix : '+fmt(prod.priceBuy)+' MAD';
+    } else {
+      $('purchase-price-hint').textContent='';
+    }
   });
 
   $('purchase-type').addEventListener('change',()=>{
@@ -743,9 +755,9 @@ async function savePurchase() {
       if(!productId){alert('Choisissez un produit');btn.textContent='Enregistrer';btn.disabled=false;return;}
       const prod=allProducts.find(p=>p.id===productId);
       if(!prod){btn.textContent='Enregistrer';btn.disabled=false;return;}
-      // Update stock and price
+      // Update stock; only admins can update price
       const updateData={qty:prod.qty+qty};
-      if(price>0) updateData.priceBuy=price;
+      if(price>0&&isAdmin()) updateData.priceBuy=price;
       await db.collection('products').doc(productId).update(updateData);
       // Save purchase record
       await db.collection('purchases').add({
@@ -856,31 +868,31 @@ function renderAdsEntries() {
 // ══════════════════════════════════════════
 function updateKPIs() {
   const now=new Date(), som=new Date(now.getFullYear(),now.getMonth(),1);
+  const activeOrders=allOrders.filter(o=>o.status!=='cancelled');
   
-  // CA ce mois (toutes commandes non annulées du mois en cours)
-  const ordersMonth=allOrders.filter(o=>o.date&&new Date(o.date)>=som);
-  const caMonth=ordersMonth.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(o.amount||0),0);
-  
-  // Si aucune commande ce mois, afficher le total général
-  const caTotal=allOrders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(o.amount||0),0);
-  const ca = caMonth > 0 ? caMonth : caTotal;
-  const caLabel = caMonth > 0 ? 'ce mois' : 'total';
-  
+  // CA total (pas filtré par mois pour voir toutes les données)
+  const ordersMonth=allOrders.filter(o=>o.date&&new Date(o.date)>=som&&o.status!=='cancelled');
+  const caMonth=ordersMonth.reduce((s,o)=>s+(o.amount||0),0);
+  const caTotal=activeOrders.reduce((s,o)=>s+(o.amount||0),0);
+  const ca=caMonth>0?caMonth:caTotal;
   const e1=$('kpi-ca');if(e1)e1.textContent=fmt(ca)+' MAD';
-  const kpiLabel=$('kpi-ca-label');if(kpiLabel)kpiLabel.textContent='CA '+caLabel;
-  
-  // Commandes ce mois ou total
-  const ordersCount = ordersMonth.length > 0 ? ordersMonth.length : allOrders.length;
-  const e2=$('kpi-orders');if(e2)e2.textContent=ordersCount;
-  const ordLabel=$('kpi-orders-label');if(ordLabel)ordLabel.textContent=ordersMonth.length>0?'Commandes mois':'Commandes total';
-  
+  const kl=$('kpi-ca-label');if(kl)kl.textContent=caMonth>0?'CA ce mois':'CA total';
+
+  // Commandes
+  const om=allOrders.filter(o=>o.date&&new Date(o.date)>=som);
+  const ordCount=om.length>0?om.length:allOrders.length;
+  const e2=$('kpi-orders');if(e2)e2.textContent=ordCount;
+  const ol=$('kpi-orders-label');if(ol)ol.textContent=om.length>0?'Commandes mois':'Commandes total';
+
+  // Produits
   const e3=$('kpi-stock');if(e3)e3.textContent=allProducts.length;
-  
-  const adsMonth=allAds.filter(a=>a.date&&new Date(a.date)>=som).reduce((s,a)=>s+(a.spend||0),0);
-  const adsTotal=allAds.reduce((s,a)=>s+(a.spend||0),0);
-  const ads = adsMonth > 0 ? adsMonth : adsTotal;
-  const e4=$('kpi-ads');if(e4)e4.textContent=fmt(ads)+' MAD';
-  const adsLabel=$('kpi-ads-label');if(adsLabel)adsLabel.textContent=adsMonth>0?'Dépense Ads mois':'Dépense Ads total';
+
+  // ROAS = CA (WhatsApp+Site) / Budget Ads
+  const caAds=activeOrders.filter(o=>o.channel==='whatsapp'||o.channel==='site').reduce((s,o)=>s+(o.amount||0),0);
+  const budgetAds=allAds.reduce((s,a)=>s+(a.spend||0),0);
+  const roas=budgetAds>0?(caAds/budgetAds).toFixed(2):'—';
+  const e4=$('kpi-ads');if(e4)e4.textContent=roas==='—'?fmt(caAds)+' MAD':roas+'x';
+  const al=$('kpi-ads-label');if(al)al.textContent=budgetAds>0?'ROAS Ads':'CA via Ads';
 }
 
 // ══════════════════════════════════════════
@@ -931,11 +943,19 @@ function setupReports() {
     document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.rtab-content').forEach(c=>c.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('rtab-'+btn.dataset.tab).classList.add('active');
-    setTimeout(initCharts,50);
+    const tab=btn.dataset.tab;
+    document.getElementById('rtab-'+tab).classList.add('active');
+    if(tab==='stock') setTimeout(renderStockReport,50);
+    else if(tab==='journalier') setTimeout(renderDailyReport,50);
+    else if(tab==='canaux') setTimeout(renderChannelReport,50);
+    else setTimeout(initCharts,50);
   }));
   const periodSel=$('report-period');
-  if(periodSel) periodSel.addEventListener('change',initCharts);
+  if(periodSel) periodSel.addEventListener('change',()=>{
+    initCharts();
+    renderDailyReport();
+    renderChannelReport();
+  });
 }
 
 function initCharts() {
@@ -1097,6 +1117,104 @@ function renderNamesList() {
     names.splice(parseInt(btn.dataset.i),1);saveNames(names);
     renderNamesList();populateNameSelect();
   }));
+}
+
+// ── RAPPORT JOURNALIER ───────────────────
+function renderDailyReport() {
+  const el=$('daily-report-list'); if(!el)return;
+  const days=parseInt(($('report-period')||{value:'30'}).value)||30;
+  const startDate=new Date(); startDate.setDate(startDate.getDate()-days);
+  
+  // Group orders by date
+  const byDate={};
+  allOrders.filter(o=>o.date&&new Date(o.date)>=startDate&&o.status!=='cancelled').forEach(o=>{
+    if(!byDate[o.date])byDate[o.date]={date:o.date,orders:[],ca:0,count:0};
+    byDate[o.date].orders.push(o);
+    byDate[o.date].ca+=(o.amount||0);
+    byDate[o.date].count++;
+  });
+
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  if(!dates.length){el.innerHTML='<div class="empty-state">Aucune vente sur cette période</div>';return;}
+
+  el.innerHTML=dates.map(date=>{
+    const d=byDate[date];
+    const dateFormatted=new Date(date).toLocaleDateString('fr-MA',{weekday:'long',day:'numeric',month:'long'});
+    const ordersHTML=d.orders.map(o=>`
+      <div class="daily-order-item">
+        <span>${esc(o.productName||o.packName||'—')} ×${o.qty||1}</span>
+        <span>${esc(o.client||'Boutique')} · ${esc(channelLabel(o.channel))}</span>
+        <span style="font-weight:700;color:var(--green)">${fmt(o.amount)} MAD</span>
+      </div>`).join('');
+    return `
+      <div class="daily-group">
+        <div class="daily-header">
+          <span class="daily-date">${dateFormatted}</span>
+          <div class="daily-summary"><span>${d.count} vente${d.count>1?'s':''}</span><span style="font-weight:700;color:var(--green)">${fmt(d.ca)} MAD</span></div>
+        </div>
+        <div class="daily-orders">${ordersHTML}</div>
+      </div>`;
+  }).join('');
+}
+
+function channelLabel(ch) {
+  const m={whatsapp:'WhatsApp',site:'Site',boutique:'Boutique'};
+  return m[ch]||ch||'—';
+}
+
+// ── RAPPORT CANAUX ────────────────────────
+function renderChannelReport() {
+  const el=$('channel-report-list'); if(!el)return;
+  const days=parseInt(($('report-period')||{value:'30'}).value)||30;
+  const startDate=new Date(); startDate.setDate(startDate.getDate()-days);
+
+  const active=allOrders.filter(o=>o.date&&new Date(o.date)>=startDate&&o.status!=='cancelled');
+  
+  // Boutique vs Ads (WhatsApp + Site)
+  const boutique=active.filter(o=>o.channel==='boutique');
+  const ads=active.filter(o=>o.channel==='whatsapp'||o.channel==='site');
+  const whatsapp=active.filter(o=>o.channel==='whatsapp');
+  const site=active.filter(o=>o.channel==='site');
+
+  const calcBenefit=(orders)=>{
+    return orders.reduce((s,o)=>{
+      let cost=0;
+      if(o.orderType==='product'&&o.productId){const p=allProducts.find(x=>x.id===o.productId);if(p)cost=(p.priceBuy||0)*(o.qty||1);}
+      else if(o.orderType==='pack'&&o.packId){const p=allPacks.find(x=>x.id===o.packId);if(p)cost=(p.priceBuy||0)*(o.qty||1);}
+      return s+((o.amount||0)-cost);
+    },0);
+  };
+
+  const budgetAds=allAds.filter(a=>a.date&&new Date(a.date)>=startDate).reduce((s,a)=>s+(a.spend||0),0);
+  const caAds=ads.reduce((s,o)=>s+(o.amount||0),0);
+  const caBoutique=boutique.reduce((s,o)=>s+(o.amount||0),0);
+  const benefitAds=calcBenefit(ads)-budgetAds;
+  const benefitBoutique=calcBenefit(boutique);
+  const roas=budgetAds>0?(caAds/budgetAds).toFixed(2):'—';
+
+  el.innerHTML=`
+    <div class="channel-compare">
+      <div class="channel-card ads-card">
+        <div class="channel-title">📱 ADS (WhatsApp + Site)</div>
+        <div class="channel-stat"><span>Ventes</span><span>${ads.length}</span></div>
+        <div class="channel-stat"><span>CA</span><span>${fmt(caAds)} MAD</span></div>
+        <div class="channel-stat"><span>Budget Ads</span><span>${fmt(budgetAds)} MAD</span></div>
+        <div class="channel-stat"><span>Bénéfice net</span><span style="color:${benefitAds>=0?'var(--green)':'var(--red)'}">${fmt(benefitAds)} MAD</span></div>
+        <div class="channel-stat"><span>ROAS</span><span style="font-weight:700">${roas}x</span></div>
+        <div class="channel-sub">
+          <div>WhatsApp : ${whatsapp.length} ventes · ${fmt(whatsapp.reduce((s,o)=>s+(o.amount||0),0))} MAD</div>
+          <div>Site : ${site.length} ventes · ${fmt(site.reduce((s,o)=>s+(o.amount||0),0))} MAD</div>
+        </div>
+      </div>
+      <div class="channel-card boutique-card">
+        <div class="channel-title">🏪 Boutique</div>
+        <div class="channel-stat"><span>Ventes</span><span>${boutique.length}</span></div>
+        <div class="channel-stat"><span>CA</span><span>${fmt(caBoutique)} MAD</span></div>
+        <div class="channel-stat"><span>Budget Ads</span><span>0 MAD</span></div>
+        <div class="channel-stat"><span>Bénéfice net</span><span style="color:${benefitBoutique>=0?'var(--green)':'var(--red)'}">${fmt(benefitBoutique)} MAD</span></div>
+        <div class="channel-stat"><span>ROAS</span><span>∞</span></div>
+      </div>
+    </div>`;
 }
 
 // ── STOCK REPORT ─────────────────────────

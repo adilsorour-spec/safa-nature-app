@@ -785,3 +785,51 @@ body {
 
 /* Stock report */
 #report-stock-low .order-item { cursor:default; }
+
+/* ══════════════════════════════════════
+   RAPPORT JOURNALIER & CANAUX
+══════════════════════════════════════ */
+.daily-group {
+  background: var(--surface);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.daily-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--green-pale);
+  border-bottom: 1px solid var(--border);
+}
+.daily-date { font-weight: 600; font-size: .9rem; color: var(--green); }
+.daily-summary { display: flex; gap: 12px; font-size: .85rem; }
+.daily-orders { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+.daily-order-item {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: .82rem; padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.daily-order-item:last-child { border-bottom: none; }
+.daily-order-item span:first-child { flex: 2; font-weight: 500; }
+.daily-order-item span:nth-child(2) { flex: 2; color: var(--text-muted); }
+.daily-order-item span:last-child { flex: 1; text-align: right; }
+
+/* Canaux */
+.channel-compare { display: flex; flex-direction: column; gap: 14px; }
+.channel-card {
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.ads-card { background: linear-gradient(135deg, #e8f0fa, #f0f4ff); border: 1.5px solid #c0d4f0; }
+.boutique-card { background: linear-gradient(135deg, var(--green-pale), #f0f4e8); border: 1.5px solid #b8d4b0; }
+.channel-title { font-family: var(--font-serif); font-size: 1.1rem; margin-bottom: 14px; }
+.channel-stat {
+  display: flex; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.06);
+  font-size: .88rem;
+}
+.channel-stat:last-of-type { border-bottom: none; }
+.channel-sub { margin-top: 12px; font-size: .78rem; color: var(--text-muted); line-height: 1.8; }
