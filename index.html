@@ -236,18 +236,47 @@
       <div class="field"><label>Client</label><input type="text" id="order-client" placeholder="Nom du client" /></div>
       <div class="field"><label>Téléphone</label><input type="tel" id="order-phone" placeholder="+212 6…" /></div>
     </div>
-    <!-- Type produit ou pack -->
+
+    <!-- LIGNES DE PRODUITS -->
     <div class="field">
-      <label>Type de commande</label>
-      <div class="radio-group">
-        <label class="radio-label"><input type="radio" name="order-type" value="product" checked /> Produit</label>
-        <label class="radio-label"><input type="radio" name="order-type" value="pack" /> Pack</label>
+      <label>Produits de la commande</label>
+      <div id="order-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+      <!-- Ajouter une ligne -->
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <div class="radio-group" style="margin:0">
+          <label class="radio-label"><input type="radio" name="order-add-type" value="product" checked /> Produit</label>
+          <label class="radio-label"><input type="radio" name="order-add-type" value="pack" /> Pack</label>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <select id="order-product-select" style="flex:2;font-size:.85rem"></select>
+        <select id="order-pack-select" style="flex:2;font-size:.85rem;display:none"></select>
+        <input type="number" id="order-add-qty" value="1" min="1" style="width:56px;padding:9px 6px;border:1.5px solid var(--border);border-radius:10px;font-size:.85rem" />
+        <button class="btn-add" id="btn-add-order-item" type="button" style="padding:9px 14px;white-space:nowrap">+ Ajouter</button>
       </div>
     </div>
-    <div id="order-product-row" class="field"><label>Produit</label><select id="order-product-select"></select></div>
-    <div id="order-pack-row" class="field" style="display:none"><label>Pack</label><select id="order-pack-select"></select></div>
-    <div class="field"><label>Quantité</label><input type="number" id="order-qty" value="1" min="1" /></div>
-    <div class="field"><label>Montant (MAD)</label><input type="number" id="order-amount" placeholder="0.00" /></div>
+
+    <!-- FRAIS DE LIVRAISON (WhatsApp / Site) -->
+    <div id="order-delivery-row" class="field">
+      <label>Frais de livraison (MAD)</label>
+      <input type="number" id="order-delivery" placeholder="0.00" value="0" min="0" />
+    </div>
+
+    <!-- RÉCAPITULATIF -->
+    <div id="order-totals-box" style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:none">
+      <div style="display:flex;justify-content:space-between;font-size:.88rem;color:var(--text-muted);margin-bottom:4px">
+        <span>Sous-total produits</span><span id="order-subtotal-display">0 MAD</span>
+      </div>
+      <div id="order-delivery-line" style="display:flex;justify-content:space-between;font-size:.88rem;color:var(--text-muted);margin-bottom:6px">
+        <span>Frais de livraison</span><span id="order-delivery-display">0 MAD</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;border-top:1px solid var(--border);padding-top:6px">
+        <span>Total commande</span><span id="order-total-display" style="color:var(--green)">0 MAD</span>
+      </div>
+    </div>
+
+    <div class="field" style="display:none"><label>Montant (MAD)</label><input type="number" id="order-amount" placeholder="0.00" /></div>
+
     <div class="field"><label>Statut</label>
       <select id="order-status">
         <option value="pending">En attente</option>
@@ -373,6 +402,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="app.v5.js"></script>
+<script src="app.v6.js"></script>
 </body>
 </html>
